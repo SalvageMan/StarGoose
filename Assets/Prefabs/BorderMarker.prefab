@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5895621989595883410}
   m_Layer: 0
   m_Name: BorderMarker
-  m_TagString: Untagged
+  m_TagString: BorderMarker
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
