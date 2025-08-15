@@ -1,28 +1,32 @@
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
-{
-    private CameraController cameraController;
+public class Bullet : MonoBehaviour {
+    private static Camera mainCam; 
+    private static CameraController cachedController;
     private bool boundsFound = false;
     private Collider2D bulletCollider;
 
     private void Start() {
-        // Find the camera controller to get the actual bounds
-        cameraController = FindObjectOfType<CameraController>();
-        if (cameraController != null) {
-            boundsFound = true;
-        } else {
-            Debug.LogWarning("CameraController not found! Bullet bounds checking disabled.");
-        }
         
-        // Disable collider briefly to avoid immediate collision with player
+        if (mainCam == null) {
+            mainCam = Camera.main;
+        }
+        if (cachedController == null) {
+            cachedController = FindFirstObjectByType<CameraController>();
+        }
+
+        boundsFound = mainCam != null;
+
+        if (!boundsFound) {
+            Debug.LogWarning("Main camera not found! Bullet bounds checking disabled.");
+        }
+
+        
         bulletCollider = GetComponent<Collider2D>();
         bulletCollider.enabled = false;
-        
-        // Re-enable collider after a short delay
-        Invoke("EnableCollider", 0.1f);
+        Invoke(nameof(EnableCollider), 0.1f);
     }
-    
+
     private void EnableCollider() {
         if (bulletCollider != null) {
             bulletCollider.enabled = true;
@@ -30,16 +34,19 @@ public class Bullet : MonoBehaviour
     }
 
     private void Update() {
-        // Only check bounds if we found the camera controller
-        if (boundsFound) {
-            // Access the bounds from CameraController (you'll need to make these public)
-            // For now, let's use a more generous boundary check
-            Vector3 pos = transform.position;
-            
-            // Check if bullet is way outside reasonable bounds
-            if (pos.x < -50f || pos.x > 50f || pos.y < -50f || pos.y > 50f) {
-                Destroy(gameObject);
-            }
+        if (!boundsFound) return;
+
+        
+        Vector3 minCam = mainCam.ViewportToWorldPoint(new Vector3(0, 0, 0));
+        Vector3 maxCam = mainCam.ViewportToWorldPoint(new Vector3(1, 1, 0));
+
+        
+        float margin = 1f;
+
+        Vector3 pos = transform.position;
+        if (pos.x < minCam.x - margin || pos.x > maxCam.x + margin ||
+            pos.y < minCam.y - margin || pos.y > maxCam.y + margin) {
+            Destroy(gameObject);
         }
     }
 
