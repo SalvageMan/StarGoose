@@ -326,13 +326,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2f18712ef5c0cb4092c65581ccfd52a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTrg: {fileID: 1568553892}
-  smoothSpeed: 0.3
-  offSet: {x: 0, y: 0, z: -1}
   minPosX: -18
   maxPosX: 18
   minPosY: 0
   maxPosY: 20
+  fixedPosition: {x: 0, y: 0, z: 0}
+  useFixedPosition: 0
+  playerOffset: {x: 0, y: 0, z: -10}
+  cameraSize: 5
+  fieldOfView: 60
+  expandToFitBorderMarkers: 1
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -708,11 +711,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa09941fbea43e4a81716ac6a4ad46a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
-  acceleration: 15
-  deceleration: 20
+  moveSpeed: 20
+  acceleration: 150
+  deceleration: 1000
   screenPadding: {x: 0.5, y: 0.5}
   useCameraBounds: 1
+  maxHealth: 100
+  healthBarOffset: {x: 0, y: 1.5, z: 0}
 --- !u!114 &1568553896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -740,6 +745,8 @@ GameObject:
   - component: {fileID: 1903561047}
   - component: {fileID: 1903561049}
   - component: {fileID: 1903561050}
+  - component: {fileID: 1903561051}
+  - component: {fileID: 1903561052}
   m_Layer: 0
   m_Name: PlanetEnemy
   m_TagString: Untagged
@@ -880,6 +887,36 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 7
+--- !u!114 &1903561051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903561046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e2868ef07252f41ad15829bcd676b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 1000
+  canShoot: 1
+--- !u!114 &1903561052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903561046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da85f3c67b3433b4c97ddaac370c02aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firePoint: {fileID: 0}
+  enemyBulletPrefab: {fileID: 1879404067453950174, guid: 1a55c72b253c57c4ebb44478a19fe587, type: 3}
+  bulletForce: 15
+  fireRate: 3
 --- !u!1 &1966149131
 GameObject:
   m_ObjectHideFlags: 0
