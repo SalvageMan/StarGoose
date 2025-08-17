@@ -23,29 +23,29 @@ public class EnemyBullet : MonoBehaviour {
         // Make sure it's visible and at the right depth
         transform.position = new Vector3(transform.position.x, transform.position.y, -2f); // Even further forward
         
-        // Ensure proper scale and color with more aggressive settings
+        // Ensure proper scale and color with better visibility
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null) {
-            sr.color = Color.red;
+            sr.color = Color.white; // Keep natural asteroid color, or use Color.red if you want it red
             sr.sortingLayerName = "Default";
-            sr.sortingOrder = 100; // Very high sorting order
+            sr.sortingOrder = 100;
             sr.enabled = true;
             
-            // Make it bigger temporarily to see if size is the issue
-            transform.localScale = Vector3.one * 20f; // Keep the visual size you like
+            // Scale down the asteroid - try different values to get the right size
+            transform.localScale = Vector3.one * 0.3f; // Much smaller - try 0.1f, 0.2f, 0.3f, 0.5f etc.
         }
         
-        // Fix the collision size - make it smaller than the visual
+        // Fix the collision size - make it match the visual size better
         Collider2D collider = GetComponent<Collider2D>();
         if (collider != null)
         {
             if (collider is CircleCollider2D circleCol)
             {
-                circleCol.radius = 0.05f; // Much smaller collision radius
+                circleCol.radius = 5.15f; // Much bigger than 0.05f - should match the visual asteroid size
             }
             else if (collider is BoxCollider2D boxCol)
             {
-                boxCol.size = new Vector2(0.1f, 0.1f); // Much smaller collision box
+                boxCol.size = new Vector2(0.3f, 0.3f); // Much bigger collision box
             }
         }
         

@@ -17,6 +17,9 @@ public class PlanetEnemy : MonoBehaviour
 
     void Start()
     {
+        // Position the PlanetEnemy within the border markers
+        PositionPlanetEnemyInBounds();
+        
         // Initialize health system
         healthSystem = new HealthSystem(maxHealth);
         healthSystem.OnHealthChanged += OnHealthChanged;
@@ -29,11 +32,14 @@ public class PlanetEnemy : MonoBehaviour
         {
             EnemyShooting shooting = gameObject.AddComponent<EnemyShooting>();
             
+            // Create a firepoint for shooting
+            CreateFirePoint(shooting);
+            
             // ASSIGN THE PREFAB IMMEDIATELY
             shooting.enemyBulletPrefab = Resources.Load<GameObject>("EnemyBullet");
             if (shooting.enemyBulletPrefab == null)
             {
-                Debug.LogError("Could not find EnemyBullet prefab in Resources folder! Make sure EnemyBullet prefab is in a Resources folder, or assign it manually in the inspector.");
+                Debug.LogError("Could not find EnemyBullet prefab in Resources folder!");
             }
             else
             {
@@ -41,28 +47,45 @@ public class PlanetEnemy : MonoBehaviour
             }
         }
         
-        Debug.Log($"PlanetEnemy spawned with {healthSystem.CurrentHealth} health");
+        Debug.Log($"PlanetEnemy spawned with {healthSystem.CurrentHealth} health at position {transform.position}");
     }
     
     void CreateHealthBar()
     {
-        // Use BorderMarkerUtils to get position
-        Vector3 healthBarPosition = BorderMarkerUtils.GetTopBorderPosition() + Vector3.down;
+        // Position health bar relative to the player/camera position instead of border markers
+        Vector3 playerPosition = Vector3.zero;
+        PlayerFlightController player = FindFirstObjectByType<PlayerFlightController>();
+        if (player != null)
+        {
+            playerPosition = player.transform.position;
+        }
+        
+        // Position the health bar above the player's view area - find the sweet spot
+        Vector3 healthBarPosition = new Vector3(
+            playerPosition.x, // Same X as player
+            playerPosition.y + 9f, // Reduced from 11f to 8f (between the original 6f and too-high 11f)
+            -5f // In front of everything
+        );
+
+        Debug.Log($"Creating PlanetEnemy health bar at position: {healthBarPosition}");
+        Debug.Log($"Player position: {playerPosition}");
 
         // Create a Canvas for the health bar
-        GameObject canvasGO = new GameObject("HealthBarCanvas");
+        GameObject canvasGO = new GameObject("PlanetEnemyHealthBarCanvas");
         
         healthBarCanvas = canvasGO.AddComponent<Canvas>();
         healthBarCanvas.renderMode = RenderMode.WorldSpace;
         healthBarCanvas.worldCamera = Camera.main;
         
         CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
-        scaler.scaleFactor = 0.001f;
+        scaler.scaleFactor = 0.01f;
         
         canvasGO.transform.position = healthBarPosition;
-        canvasGO.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        canvasGO.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        // Create background
+        Debug.Log($"Health bar canvas created at: {canvasGO.transform.position} with scale: {canvasGO.transform.localScale}");
+
+        // Create background - make it a bit bigger
         GameObject backgroundGO = new GameObject("HealthBarBackground");
         backgroundGO.transform.SetParent(canvasGO.transform, false);
         
@@ -70,9 +93,9 @@ public class PlanetEnemy : MonoBehaviour
         backgroundImage.color = Color.black;
         
         RectTransform bgRect = backgroundGO.GetComponent<RectTransform>();
-        bgRect.sizeDelta = new Vector2(200, 40);
+        bgRect.sizeDelta = new Vector2(75, 12); // Increased from 50x8 to 75x12 (50% bigger)
 
-        // Create slider
+        // Create slider - match the bigger size
         GameObject sliderGO = new GameObject("HealthBarSlider");
         sliderGO.transform.SetParent(canvasGO.transform, false);
         
@@ -81,7 +104,7 @@ public class PlanetEnemy : MonoBehaviour
         healthBarSlider.value = healthSystem.CurrentHealth;
         
         RectTransform sliderRect = sliderGO.GetComponent<RectTransform>();
-        sliderRect.sizeDelta = new Vector2(200, 40);
+        sliderRect.sizeDelta = new Vector2(75, 12); // Match background size
 
         // Create fill area and fill
         GameObject fillAreaGO = new GameObject("Fill Area");
@@ -107,20 +130,22 @@ public class PlanetEnemy : MonoBehaviour
 
         healthBarSlider.fillRect = fillRect;
 
-        // Create text
+        // Create text - slightly bigger font
         GameObject textGO = new GameObject("HealthText");
         textGO.transform.SetParent(canvasGO.transform, false);
         
         healthText = textGO.AddComponent<Text>();
         healthText.text = $"{healthSystem.CurrentHealth}/{healthSystem.MaxHealth} ({healthSystem.HealthPercentage:F0}%)";
         healthText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        healthText.fontSize = 14;
+        healthText.fontSize = 4; // Increased from 3 to 4
         healthText.color = Color.white;
         healthText.alignment = TextAnchor.MiddleCenter;
         
         RectTransform textRect = textGO.GetComponent<RectTransform>();
-        textRect.sizeDelta = new Vector2(200, 40);
+        textRect.sizeDelta = new Vector2(75, 12); // Match the bigger size
         textRect.anchoredPosition = Vector2.zero;
+        
+        Debug.Log("PlanetEnemy health bar created successfully");
     }
 
     public void TakeDamage(float damage)
@@ -175,5 +200,44 @@ public class PlanetEnemy : MonoBehaviour
             healthBarCanvas.transform.LookAt(Camera.main.transform);
             healthBarCanvas.transform.Rotate(0, 180, 0);
         }
+    }
+
+    void PositionPlanetEnemyInBounds()
+    {
+        // Use BorderMarkerUtils to get the bounds
+        Bounds bounds = BorderMarkerUtils.GetBorderBounds();
+        
+        if (bounds.size != Vector3.one * 10f) // Check if we found real markers
+        {
+            // Position the planet enemy somewhere within the bounds (not at center like player)
+            // Let's put it at the right side of the play area
+            Vector3 planetPosition = new Vector3(
+                bounds.center.x + (bounds.size.x * 0.3f), // 30% to the right of center
+                bounds.center.y, // Same Y as center
+                transform.position.z // Keep original Z
+            );
+            
+            transform.position = planetPosition;
+            Debug.Log($"Positioned PlanetEnemy within border bounds at: {planetPosition}");
+        }
+        else
+        {
+            Debug.LogWarning("No border markers found - PlanetEnemy will remain at current position");
+        }
+    }
+
+    void CreateFirePoint(EnemyShooting shooting)
+    {
+        // Create a child GameObject as the fire point
+        GameObject firePointGO = new GameObject("FirePoint");
+        firePointGO.transform.SetParent(transform);
+        
+        // Position it slightly in front of the planet (towards the player)
+        firePointGO.transform.localPosition = new Vector3(-1f, 0f, 0f); // 1 unit to the left (towards center)
+        
+        // Assign it to the shooting component
+        shooting.firePoint = firePointGO.transform;
+        
+        Debug.Log($"Created FirePoint for PlanetEnemy at local position: {firePointGO.transform.localPosition}");
     }
 }

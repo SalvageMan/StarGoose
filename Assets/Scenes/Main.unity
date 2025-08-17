@@ -322,7 +322,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f2f18712ef5c0cb4092c65581ccfd52a, type: 3}
   m_Name: 
@@ -826,6 +826,7 @@ MonoBehaviour:
   useCameraBounds: 1
   maxHealth: 100
   healthBarOffset: {x: 0, y: 1.5, z: 0}
+  virtualCameraName: VirtualCameraOne
 --- !u!114 &1568553896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -906,8 +907,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.745283, g: 0.16522783, b: 0.16522783, a: 1}
+  m_Sprite: {fileID: 797172942930855914, guid: 6d3c91c0022077549b03e1a66b67c90b, type: 3}
+  m_Color: {r: 0.8238993, g: 0.8057632, b: 0.8057632, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -926,8 +927,8 @@ Transform:
   m_GameObject: {fileID: 1903561046}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 21.43, y: 10.64, z: 0}
-  m_LocalScale: {x: 23.631613, y: 23.155802, z: 1.9546}
+  m_LocalPosition: {x: 16.89, y: 11.04, z: 0}
+  m_LocalScale: {x: 1.5894749, y: 1.5574716, z: 0.13146743}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -967,7 +968,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.50000006
+  m_Radius: 4.5
 --- !u!50 &1903561050
 Rigidbody2D:
   serializedVersion: 5

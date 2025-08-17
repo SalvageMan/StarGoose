@@ -32,7 +32,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            if (cam.orthographic)
+        if (cam.orthographic)
             {
                 cam.orthographicSize = cameraSize;
             }
