@@ -1,0 +1,222 @@
+Class CinemachineCamera
+
+This behaviour is intended to be attached to an empty GameObject, and it represents a Cinemachine Camera within the Unity scene.
+
+The CinemachineCamera will animate its Transform according to the rules contained in its CinemachineComponent pipeline (Aim, Body, and Noise). When the CM camera is Live, the Unity camera will assume the position and orientation of the CinemachineCamera.
+
+A CinemachineCamera is not a camera. Instead, it can be thought of as a camera controller, not unlike a cameraman. It can drive the Unity Camera and control its position, rotation, lens settings, and PostProcessing effects. Each CM Camera owns its own Cinemachine Component Pipeline, through which you can provide the instructions for procedurally tracking specific game objects. An empty procedural pipeline will result in a passive CinemachineCamera, which can be controlled in the same way as an ordinary GameObject.
+
+A CinemachineCamera is very lightweight, and does no rendering of its own. It merely tracks interesting GameObjects, and positions itself accordingly. A typical game can have dozens of CinemachineCameras, each set up to follow a particular character or capture a particular event.
+
+A CinemachineCamera can be in any of three states:
+
+    Live: The CinemachineCamera is actively controlling the Unity Camera. The CinemachineCamera is tracking its targets and being updated every frame.
+    Standby: The CinemachineCamera is tracking its targets and being updated every frame, but no Unity Camera is actively being controlled by it. This is the state of a CinemachineCamera that is enabled in the scene but perhaps at a lower priority than the Live CinemachineCamera.
+    Disabled: The CinemachineCamera is present but disabled in the scene. It is not actively tracking its targets and so consumes no processing power. However, the CinemachineCamera can be made live from the Timeline.
+
+The Unity Camera can be driven by any CinemachineCamera in the scene. The game logic can choose the CinemachineCamera to make live by manipulating the CM camerass enabled flags and/or its priority, based on game logic.
+
+In order to be driven by a CinemachineCamera, the Unity Camera must have a CinemachineBrain behaviour, which will select the most eligible CinemachineCamera based on its priority or on other criteria, and will manage blending.
+Inheritance
+object
+MonoBehaviour
+CinemachineVirtualCameraBase
+CinemachineCamera
+Implements
+ICinemachineCamera
+Inherited Members
+CinemachineVirtualCameraBase.Priority
+CinemachineVirtualCameraBase.OutputChannel
+CinemachineVirtualCameraBase.FollowTargetAttachment
+CinemachineVirtualCameraBase.LookAtTargetAttachment
+CinemachineVirtualCameraBase.StandbyUpdate
+Namespace: Unity.Cinemachine
+Assembly: Unity.Cinemachine.dll
+Syntax
+
+[DisallowMultipleComponent]
+[ExecuteAlways]
+[AddComponentMenu("Cinemachine/Cinemachine Camera")]
+[HelpURL("https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachineCamera.html")]
+public sealed class CinemachineCamera : CinemachineVirtualCameraBase, ICinemachineCamera
+
+Fields
+BlendHint
+
+Hint for transitioning to and from this CinemachineCamera. Hints can be combined, although not all combinations make sense. In the case of conflicting hints, Cinemachine will make an arbitrary choice.
+Declaration
+
+[Tooltip("Hint for transitioning to and from this CinemachineCamera.  Hints can be combined, although not all combinations make sense.  In the case of conflicting hints, Cinemachine will make an arbitrary choice.")]
+public CinemachineCore.BlendHints BlendHint
+
+Field Value
+Type 	Description
+CinemachineCore.BlendHints 	
+Lens
+
+Specifies the LensSettings of this camera. These settings will be transferred to the Unity camera when the CM Camera is live.
+Declaration
+
+[Tooltip("Specifies the lens properties of this Virtual Camera.  This generally mirrors the Unity Camera's lens settings, and will be used to drive the Unity camera when the vcam is active.")]
+public LensSettings Lens
+
+Field Value
+Type 	Description
+LensSettings 	
+Target
+
+The Tracking and LookAt targets for this camera.
+Declaration
+
+[Tooltip("Specifies the Tracking and LookAt targets for this camera.")]
+public CameraTarget Target
+
+Field Value
+Type 	Description
+CameraTarget 	
+Properties
+Follow
+
+Get the current Follow target. Returns parent's Follow if parent is non-null and no specific Follow defined for this camera
+Declaration
+
+public override Transform Follow { get; set; }
+
+Property Value
+Type 	Description
+Transform 	
+Overrides
+CinemachineVirtualCameraBase.Follow
+LookAt
+
+Get the current LookAt target. Returns parent's LookAt if parent is non-null and no specific LookAt defined for this camera
+Declaration
+
+public override Transform LookAt { get; set; }
+
+Property Value
+Type 	Description
+Transform 	
+Overrides
+CinemachineVirtualCameraBase.LookAt
+State
+
+The current camera state, which will applied to the Unity Camera
+Declaration
+
+public override CameraState State { get; }
+
+Property Value
+Type 	Description
+CameraState 	
+Overrides
+CinemachineVirtualCameraBase.State
+Methods
+ForceCameraPosition(Vector3, Quaternion)
+
+Force the CinemachineCamera to assume a given position and orientation
+Declaration
+
+public override void ForceCameraPosition(Vector3 pos, Quaternion rot)
+
+Parameters
+Type 	Name 	Description
+Vector3 	pos 	
+
+World-space position to take
+Quaternion 	rot 	
+
+World-space orientation to take
+Overrides
+CinemachineVirtualCameraBase.ForceCameraPosition(Vector3, Quaternion)
+GetCinemachineComponent(Stage)
+
+Get the component set for a specific stage in the pipeline.
+Declaration
+
+public override CinemachineComponentBase GetCinemachineComponent(CinemachineCore.Stage stage)
+
+Parameters
+Type 	Name 	Description
+CinemachineCore.Stage 	stage 	
+
+The stage for which we want the component
+Returns
+Type 	Description
+CinemachineComponentBase 	
+
+The Cinemachine component for that stage, or null if not present.
+Overrides
+CinemachineVirtualCameraBase.GetCinemachineComponent(CinemachineCore.Stage)
+GetMaxDampTime()
+
+Query components and extensions for the maximum damping time.
+Declaration
+
+public override float GetMaxDampTime()
+
+Returns
+Type 	Description
+float 	
+
+Highest damping setting in this CinemachineCamera
+Overrides
+CinemachineVirtualCameraBase.GetMaxDampTime()
+InternalUpdateCameraState(Vector3, float)
+
+Internal use only. Called by CinemachineCore at designated update time so the vcam can position itself and track its targets.
+Declaration
+
+public override void InternalUpdateCameraState(Vector3 worldUp, float deltaTime)
+
+Parameters
+Type 	Name 	Description
+Vector3 	worldUp 	
+
+Default world Up, set by the CinemachineBrain
+float 	deltaTime 	
+
+Delta time for time-based effects (ignore if less than 0)
+Overrides
+CinemachineVirtualCameraBase.InternalUpdateCameraState(Vector3, float)
+OnTargetObjectWarped(Transform, Vector3)
+
+This is called to notify the CinemachineCamera that a target got warped, so that the CinemachineCamera can update its internal state to make the camera also warp seamlessly.
+Declaration
+
+public override void OnTargetObjectWarped(Transform target, Vector3 positionDelta)
+
+Parameters
+Type 	Name 	Description
+Transform 	target 	
+
+The object that was warped
+Vector3 	positionDelta 	
+
+The amount the target's position changed
+Overrides
+CinemachineVirtualCameraBase.OnTargetObjectWarped(Transform, Vector3)
+OnTransitionFromCamera(ICinemachineCamera, Vector3, float)
+
+Handle transition from another CinemachineCamera. InheritPosition is implemented here.
+Declaration
+
+public override void OnTransitionFromCamera(ICinemachineCamera fromCam, Vector3 worldUp, float deltaTime)
+
+Parameters
+Type 	Name 	Description
+ICinemachineCamera 	fromCam 	
+
+The camera being deactivated. May be null.
+Vector3 	worldUp 	
+
+Default world Up, set by the CinemachineBrain
+float 	deltaTime 	
+
+Delta time for time-based effects (ignore if less than or equal to 0)
+Overrides
+CinemachineVirtualCameraBase.OnTransitionFromCamera(ICinemachineCamera, Vector3, float)
+Implements
+ICinemachineCamera
+Extension Methods
+CinemachineInputProviderExtensions.GetInputAxisProvider(CinemachineVirtualCameraBase) 

@@ -108,6 +108,9 @@ public class PlayerFlightController : MonoBehaviour {
                 virtualCameraObject.transform.position = cameraPosition;
                 Debug.Log($"Positioned {virtualCameraName} at: {cameraPosition}");
 
+                // Adjust camera size to fit border marker boundaries
+                SetCameraSizeToFitBounds(virtualCameraComponent);
+
                 // Try to set the priority to make sure this camera is active
                 var priorityProperty = virtualCameraComponent.GetType().GetProperty("Priority");
                 if (priorityProperty != null)
@@ -126,6 +129,90 @@ public class PlayerFlightController : MonoBehaviour {
         else
         {
             Debug.LogWarning($"Could not find virtual camera named '{virtualCameraName}' in the hierarchy");
+        }
+    }
+
+    void SetCameraSizeToFitBounds(object virtualCameraComponent)
+    {
+        // Get border marker bounds
+        Bounds bounds = BorderMarkerUtils.GetBorderBounds();
+        
+        if (bounds.size == Vector3.one * 10f) // Default bounds means no markers found
+        {
+            Debug.LogWarning("No BorderMarkers found for camera sizing!");
+            return;
+        }
+
+        Debug.Log($"Border bounds for camera sizing: center={bounds.center}, size={bounds.size}");
+
+        // Get the camera's aspect ratio
+        float aspectRatio = (float)Screen.width / (float)Screen.height;
+        Debug.Log($"Screen aspect ratio: {aspectRatio}");
+
+        // Calculate orthographic size needed for both dimensions
+        float totalHeight = bounds.size.y;
+        float totalWidth = bounds.size.x;
+        
+        // Calculate size needed for vertical bounds
+        float sizeForHeight = totalHeight / 2f;
+        
+        // Calculate size needed for horizontal bounds (accounting for aspect ratio)
+        float sizeForWidth = totalWidth / (2f * aspectRatio);
+        
+        // Use the larger of the two to ensure both dimensions fit
+        float newOrthographicSize = Mathf.Max(sizeForHeight, sizeForWidth);
+        
+        // Remove padding - align exactly with border marker edges
+        // newOrthographicSize *= 1.1f; // 10% padding - REMOVED
+        
+        // Clamp to reasonable values
+        newOrthographicSize = Mathf.Clamp(newOrthographicSize, 5f, 25f);
+
+        Debug.Log($"Size for height: {sizeForHeight}, Size for width: {sizeForWidth}");
+        Debug.Log($"Final orthographic size: {newOrthographicSize} (from height: {totalHeight}, width: {totalWidth})");
+
+        // Try to access the Lens field directly using reflection
+        var componentType = virtualCameraComponent.GetType();
+        Debug.Log($"Virtual camera component type: {componentType.Name}");
+        
+        var lensField = componentType.GetField("Lens");
+        if (lensField != null)
+        {
+            Debug.Log("Found Lens field");
+            var lensValue = lensField.GetValue(virtualCameraComponent);
+            var lensType = lensValue.GetType();
+            Debug.Log($"Lens value type: {lensType.Name}");
+            
+            // Try to find the orthographic size field in LensSettings
+            var orthographicSizeField = lensType.GetField("OrthographicSize");
+            if (orthographicSizeField != null)
+            {
+                Debug.Log($"Found OrthographicSize field");
+                
+                // Get the current value first
+                var currentSize = orthographicSizeField.GetValue(lensValue);
+                Debug.Log($"Current orthographic size: {currentSize}");
+                
+                // Set the new value
+                orthographicSizeField.SetValue(lensValue, newOrthographicSize);
+                
+                // Set the modified lens back to the camera
+                lensField.SetValue(virtualCameraComponent, lensValue);
+                
+                Debug.Log($"Successfully set {virtualCameraName} orthographic size from {currentSize} to {newOrthographicSize}");
+            }
+            else
+            {
+                Debug.LogWarning($"Could not find OrthographicSize field in LensSettings. Available fields:");
+                foreach (var field in lensType.GetFields())
+                {
+                    Debug.Log($"  - {field.Name} ({field.FieldType.Name})");
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Could not find Lens field on {componentType.Name}");
         }
     }
 

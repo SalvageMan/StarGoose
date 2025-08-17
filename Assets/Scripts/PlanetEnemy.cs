@@ -63,7 +63,7 @@ public class PlanetEnemy : MonoBehaviour
         // Position the health bar above the player's view area - find the sweet spot
         Vector3 healthBarPosition = new Vector3(
             playerPosition.x, // Same X as player
-            playerPosition.y + 9f, // Reduced from 11f to 8f (between the original 6f and too-high 11f)
+            playerPosition.y + 12f, // Reduced from 11f to 8f (between the original 6f and too-high 11f)
             -5f // In front of everything
         );
 
