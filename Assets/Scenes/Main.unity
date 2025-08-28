@@ -658,7 +658,7 @@ MonoBehaviour:
   cameraSize: 10
   updateSizeInRealTime: 0
   cameraZPosition: -10
-  enableBoundaryConstraint: 1
+  enableBoundaryConstraint: 0
   cameraDescription: Default Camera
   basePriority: 10
 --- !u!1 &1568553890
@@ -853,11 +853,11 @@ MonoBehaviour:
   useCameraBounds: 1
   maxHealth: 100
   healthBarOffset: {x: -1.5, y: 0, z: 0}
-  dashDistance: 8
-  dashDuration: 0.2
-  dashRechargeTime: 5
-  maxDashCharges: 2
-  doubleTapWindow: 0.3
+  dashDistance: 6.71
+  dashDuration: 0.224
+  dashRechargeTime: 1
+  maxDashCharges: 5
+  doubleTapWindow: 0.237
 --- !u!114 &1568553896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -910,7 +910,7 @@ MonoBehaviour:
   cameraSize: 9.49
   updateSizeInRealTime: 0
   cameraZPosition: -10
-  enableBoundaryConstraint: 0
+  enableBoundaryConstraint: 1
   cameraDescription: Default Camera
   basePriority: 10
 --- !u!114 &1874119320
