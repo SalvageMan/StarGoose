@@ -186,10 +186,10 @@ GameObject:
   m_Component:
   - component: {fileID: 519420032}
   - component: {fileID: 519420034}
-  - component: {fileID: 519420033}
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420035}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -315,28 +315,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &519420033
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519420028}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2f18712ef5c0cb4092c65581ccfd52a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  minPosX: -18
-  maxPosX: 18
-  minPosY: 0
-  maxPosY: 20
-  fixedPosition: {x: 0, y: 0, z: 0}
-  useFixedPosition: 0
-  playerOffset: {x: 0, y: 0, z: -10}
-  cameraSize: 5
-  fieldOfView: 60
-  expandToFitBorderMarkers: 1
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,6 +347,28 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &519420035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bde1932ee724ad24f8a948700761dbde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameras:
+  - {fileID: 1029838795}
+  - {fileID: 1874119319}
+  startingState: 0
+  transitionDuration: 0.1
+  debugMode: 1
+  debugForceState: 0
+  playerTransform: {fileID: 0}
+  victoryCountdownDuration: 5
+  countdownTextPrefab: {fileID: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -577,6 +577,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1029838794}
   - component: {fileID: 1029838793}
+  - component: {fileID: 1029838795}
   m_Layer: 0
   m_Name: VirtualCameraOne
   m_TagString: Untagged
@@ -642,6 +643,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1029838795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029838792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96f6f1620ab4c7a4a844803928531b33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraSize: 10
+  updateSizeInRealTime: 0
+  cameraZPosition: -10
+  enableBoundaryConstraint: 1
+  cameraDescription: Default Camera
+  basePriority: 10
 --- !u!1 &1568553890
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,8 +844,12 @@ MonoBehaviour:
   screenPadding: {x: 0.5, y: 0.5}
   useCameraBounds: 1
   maxHealth: 100
-  healthBarOffset: {x: 0, y: 1.5, z: 0}
-  virtualCameraName: VirtualCameraOne
+  healthBarOffset: {x: -1.5, y: 0, z: 0}
+  dashDistance: 8
+  dashDuration: 0.2
+  dashRechargeTime: 5
+  maxDashCharges: 2
+  doubleTapWindow: 0.3
 --- !u!114 &1568553896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -842,6 +865,102 @@ MonoBehaviour:
   firePoint: {fileID: 1966149132}
   bulletPrefab: {fileID: 7413679095417890836, guid: bb1c140812320f34ca2c6507675af665, type: 3}
   bulletForce: 20
+  fireRate: 5
+  autoFireDelay: 0.1
+--- !u!1 &1874119318
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1874119321}
+  - component: {fileID: 1874119320}
+  - component: {fileID: 1874119319}
+  m_Layer: 0
+  m_Name: VirtualCameraTwo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1874119319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874119318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96f6f1620ab4c7a4a844803928531b33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraSize: 9.49
+  updateSizeInRealTime: 0
+  cameraZPosition: -10
+  enableBoundaryConstraint: 0
+  cameraDescription: Default Camera
+  basePriority: 10
+--- !u!114 &1874119320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874119318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 40
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!4 &1874119321
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874119318}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 31.8, y: 19.6, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1903561046
 GameObject:
   m_ObjectHideFlags: 0
@@ -1025,8 +1144,8 @@ MonoBehaviour:
   firePoint: {fileID: 0}
   enemyBulletPrefab: {fileID: 1879404067453950174, guid: 1a55c72b253c57c4ebb44478a19fe587, type: 3}
   bulletForce: 15
-  bulletForceVariation: 0.5
-  fireRate: 3
+  bulletForceVariation: 0.1
+  fireRate: 0.5
 --- !u!1 &1966149131
 GameObject:
   m_ObjectHideFlags: 0
@@ -1128,3 +1247,4 @@ SceneRoots:
   - {fileID: 490189557}
   - {fileID: 834578634}
   - {fileID: 1029838794}
+  - {fileID: 1874119321}
