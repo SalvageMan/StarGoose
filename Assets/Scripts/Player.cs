@@ -9,6 +9,19 @@ public class PlayerFlightController : MonoBehaviour {
     public float deceleration = 20f;
     public Vector2 screenPadding = new Vector2(0.5f, 0.5f);
 
+    [Header("Input Settings")]
+    [Tooltip("Key bindings for movement and dash")]
+    public KeyCode moveLeftKey = KeyCode.A;
+    public KeyCode moveRightKey = KeyCode.D;
+    public KeyCode moveUpKey = KeyCode.W;
+    public KeyCode moveDownKey = KeyCode.S;
+
+    [Tooltip("Alternative keys (arrow keys by default)")]
+    public KeyCode altMoveLeftKey = KeyCode.LeftArrow;
+    public KeyCode altMoveRightKey = KeyCode.RightArrow;
+    public KeyCode altMoveUpKey = KeyCode.UpArrow;
+    public KeyCode altMoveDownKey = KeyCode.DownArrow;
+
     [Header("Boundary Settings")]
     public bool useCameraBounds = true;
     private Vector3 minBounds;
@@ -235,31 +248,44 @@ public class PlayerFlightController : MonoBehaviour {
 
     void HandleMovementInput()
     {
-        moveInput.x = Input.GetAxisRaw("Horizontal");
-        moveInput.y = Input.GetAxisRaw("Vertical");
+        // Reset input
+        moveInput = Vector2.zero;
+        
+        // Check horizontal input
+        if (Input.GetKey(moveLeftKey) || Input.GetKey(altMoveLeftKey))
+            moveInput.x -= 1f;
+        if (Input.GetKey(moveRightKey) || Input.GetKey(altMoveRightKey))
+            moveInput.x += 1f;
+        
+        // Check vertical input
+        if (Input.GetKey(moveDownKey) || Input.GetKey(altMoveDownKey))
+            moveInput.y -= 1f;
+        if (Input.GetKey(moveUpKey) || Input.GetKey(altMoveUpKey))
+            moveInput.y += 1f;
+        
         moveInput = moveInput.normalized;
     }
 
     void HandleDashInput()
     {
         // Check for double-tap on horizontal keys
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        if (Input.GetKeyDown(moveLeftKey) || Input.GetKeyDown(altMoveLeftKey))
         {
-            CheckDoubleTap(KeyCode.A, -1f, true);
+            CheckDoubleTap(moveLeftKey, -1f, true);
         }
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(moveRightKey) || Input.GetKeyDown(altMoveRightKey))
         {
-            CheckDoubleTap(KeyCode.D, 1f, true);
+            CheckDoubleTap(moveRightKey, 1f, true);
         }
         
         // Check for double-tap on vertical keys
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        if (Input.GetKeyDown(moveUpKey) || Input.GetKeyDown(altMoveUpKey))
         {
-            CheckDoubleTap(KeyCode.W, 1f, false);
+            CheckDoubleTap(moveUpKey, 1f, false);
         }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(moveDownKey) || Input.GetKeyDown(altMoveDownKey))
         {
-            CheckDoubleTap(KeyCode.S, -1f, false);
+            CheckDoubleTap(moveDownKey, -1f, false);
         }
     }
 

@@ -45,8 +45,6 @@ public class VirtualCameraController : MonoBehaviour
             // Set the correct Z position after a short delay to ensure Cinemachine is ready
             Invoke(nameof(SetCameraZPosition), 0.1f);
             
-            // REMOVE: Only log in debug scenarios, or remove entirely
-            // Debug.Log($"{gameObject.name} boundary constraint enabled: {enableBoundaryConstraint}");
         }
         else
         {
@@ -64,17 +62,7 @@ public class VirtualCameraController : MonoBehaviour
                 lastCameraSize = cameraSize;
             }
         }
-        
-        // REMOVE: All these commented-out lines - they're no longer needed
-        // REMOVE ALL THE BOUNDARY CONSTRAINT CODE FROM HERE
-        // The CinemachineBoundaryConstraint script handles this now
-        // 
-        // Remove this entire section:
-        // if (constrainToBounds)
-        // {
-        //     Debug.Log($"[{gameObject.name}] About to clamp - Priority: {GetPriority()}");
-        //     ClampCameraToBounds();
-        // }
+
     }
     
     void SetCameraSize(float size)
@@ -186,8 +174,6 @@ public class VirtualCameraController : MonoBehaviour
     {
         Vector3 currentPos = transform.position;
         transform.position = new Vector3(currentPos.x, currentPos.y, cameraZPosition);
-        // REMOVE: Reduce debug spam
-        // Debug.Log($"Set {gameObject.name} Z position to {cameraZPosition}");
     }
     
     // Add this public method so CinemachineManager can use it

@@ -10,12 +10,19 @@ public class Shooting : MonoBehaviour
     [Range(5f, 50f)]
     public float bulletForce = 20f;
     
+    [Header("Input Settings")]
+    [Tooltip("Primary key for shooting")]
+    public KeyCode shootKey = KeyCode.Space;
+    
+    [Tooltip("Alternative key for shooting")]
+    public KeyCode altShootKey = KeyCode.LeftControl;
+    
     [Header("Auto Shooting")]
-    [Tooltip("Rate of fire when holding spacebar (bullets per second)")]
+    [Tooltip("Rate of fire when holding shoot key (bullets per second)")]
     [Range(1f, 20f)] // This creates a slider from 1 to 20 bullets per second
     public float fireRate = 5f;
     
-    [Tooltip("Delay before auto-fire starts when holding spacebar (in seconds)")]
+    [Tooltip("Delay before auto-fire starts when holding shoot key (in seconds)")]
     [Range(0f, 1f)] // Slider from 0 to 1 second
     public float autoFireDelay = 0.1f;
     
@@ -30,8 +37,8 @@ public class Shooting : MonoBehaviour
     
     void HandleInput()
     {
-        // Check if spacebar is pressed down (first frame)
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Check if shoot key is pressed down (first frame)
+        if (Input.GetKeyDown(shootKey) || Input.GetKeyDown(altShootKey))
         {
             // Shoot immediately on first press
             Shoot();
@@ -42,8 +49,8 @@ public class Shooting : MonoBehaviour
             nextFireTime = Time.time + (1f / fireRate); // Set next fire time
         }
         
-        // Check if spacebar is being held down
-        else if (Input.GetKey(KeyCode.Space) && isHoldingFire)
+        // Check if shoot key is being held down
+        else if ((Input.GetKey(shootKey) || Input.GetKey(altShootKey)) && isHoldingFire)
         {
             // Only start auto-fire after the delay
             if (Time.time >= holdStartTime + autoFireDelay)
@@ -57,14 +64,14 @@ public class Shooting : MonoBehaviour
             }
         }
         
-        // Check if spacebar is released
-        else if (Input.GetKeyUp(KeyCode.Space))
+        // Check if shoot key is released
+        else if (Input.GetKeyUp(shootKey) || Input.GetKeyUp(altShootKey))
         {
             isHoldingFire = false;
         }
         
-        // Fallback: if spacebar is not being held, stop auto-fire
-        if (!Input.GetKey(KeyCode.Space))
+        // Fallback: if shoot key is not being held, stop auto-fire
+        if (!Input.GetKey(shootKey) && !Input.GetKey(altShootKey))
         {
             isHoldingFire = false;
         }

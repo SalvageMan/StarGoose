@@ -309,7 +309,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.29176, y: 12.32248, z: 0}
+  m_LocalPosition: {x: -4.61, y: 13.08, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -360,8 +360,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameras:
-  - {fileID: 1029838795}
   - {fileID: 1874119319}
+  - {fileID: 1029838795}
   startingState: 0
   transitionDuration: 0.1
   debugMode: 1
@@ -579,7 +579,7 @@ GameObject:
   - component: {fileID: 1029838793}
   - component: {fileID: 1029838795}
   m_Layer: 0
-  m_Name: VirtualCameraOne
+  m_Name: VirtualCameraTwo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -637,7 +637,7 @@ Transform:
   m_GameObject: {fileID: 1029838792}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.29176, y: 12.32248, z: 0}
+  m_LocalPosition: {x: 26.23, y: 20.19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -842,6 +842,14 @@ MonoBehaviour:
   acceleration: 150
   deceleration: 1000
   screenPadding: {x: 0.5, y: 0.5}
+  moveLeftKey: 97
+  moveRightKey: 100
+  moveUpKey: 119
+  moveDownKey: 115
+  altMoveLeftKey: 276
+  altMoveRightKey: 275
+  altMoveUpKey: 273
+  altMoveDownKey: 274
   useCameraBounds: 1
   maxHealth: 100
   healthBarOffset: {x: -1.5, y: 0, z: 0}
@@ -865,6 +873,8 @@ MonoBehaviour:
   firePoint: {fileID: 1966149132}
   bulletPrefab: {fileID: 7413679095417890836, guid: bb1c140812320f34ca2c6507675af665, type: 3}
   bulletForce: 20
+  shootKey: 32
+  altShootKey: 306
   fireRate: 5
   autoFireDelay: 0.1
 --- !u!1 &1874119318
@@ -879,7 +889,7 @@ GameObject:
   - component: {fileID: 1874119320}
   - component: {fileID: 1874119319}
   m_Layer: 0
-  m_Name: VirtualCameraTwo
+  m_Name: VirtualCameraOne
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -955,7 +965,7 @@ Transform:
   m_GameObject: {fileID: 1874119318}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 31.8, y: 19.6, z: 0}
+  m_LocalPosition: {x: -4.61, y: 13.08, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1246,5 +1256,5 @@ SceneRoots:
   - {fileID: 924613896}
   - {fileID: 490189557}
   - {fileID: 834578634}
-  - {fileID: 1029838794}
   - {fileID: 1874119321}
+  - {fileID: 1029838794}
