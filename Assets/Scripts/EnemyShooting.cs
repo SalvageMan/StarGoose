@@ -21,6 +21,11 @@ public class EnemyShooting : MonoBehaviour
         if (playerController != null)
         {
             player = playerController.transform;
+            Debug.Log("EnemyShooting: Found player at " + player.position);
+        }
+        else
+        {
+            Debug.LogWarning("EnemyShooting: Could not find PlayerFlightController!");
         }
         
         if (firePoint == null)
@@ -32,6 +37,11 @@ public class EnemyShooting : MonoBehaviour
         if (enemyBulletPrefab != null)
         {
             cachedBulletPrefab = enemyBulletPrefab;
+            Debug.Log("EnemyShooting: Cached bullet prefab");
+        }
+        else
+        {
+            Debug.LogWarning("EnemyShooting: No bullet prefab assigned!");
         }
     }
 

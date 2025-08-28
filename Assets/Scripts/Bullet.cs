@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour {
     private static Camera mainCam; 
-    private static CameraController cachedController;
     private bool boundsFound = false;
     private Collider2D bulletCollider;
 
@@ -13,11 +12,11 @@ public class Bullet : MonoBehaviour {
         
         if (mainCam == null) {
             mainCam = Camera.main;
+            if (mainCam == null) {
+                mainCam = FindFirstObjectByType<Camera>();
+            }
         }
-        if (cachedController == null) {
-            cachedController = FindFirstObjectByType<CameraController>();
-        }
-
+        
         boundsFound = mainCam != null;
 
         if (!boundsFound) {
@@ -41,22 +40,46 @@ public class Bullet : MonoBehaviour {
     private void Update() {
         if (!boundsFound) return;
 
+        // Use border markers for bullet destruction instead of camera bounds
+        Bounds playAreaBounds = BorderMarkerUtils.GetBorderBounds();
         
-        Vector3 minCam = mainCam.ViewportToWorldPoint(new Vector3(0, 0, 0));
-        Vector3 maxCam = mainCam.ViewportToWorldPoint(new Vector3(1, 1, 0));
+        // If we have valid border markers, use them
+        if (playAreaBounds.size != Vector3.one * 10f) 
+        {
+            // Give bullets a generous margin beyond the play area before destroying them
+            float margin = 5f; // Much larger margin
+            
+            Vector3 pos = transform.position;
+            if (pos.x < playAreaBounds.min.x - margin || pos.x > playAreaBounds.max.x + margin ||
+                pos.y < playAreaBounds.min.y - margin || pos.y > playAreaBounds.max.y + margin) {
+                Debug.Log($"Bullet destroyed - outside play area bounds at {pos}");
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            // Fallback to camera bounds with much larger margin if no border markers
+            Vector3 minCam = mainCam.ViewportToWorldPoint(new Vector3(0, 0, 0));
+            Vector3 maxCam = mainCam.ViewportToWorldPoint(new Vector3(1, 1, 0));
 
-        
-        float margin = 1f;
+            float margin = 10f; // Much larger margin than before
 
-        Vector3 pos = transform.position;
-        if (pos.x < minCam.x - margin || pos.x > maxCam.x + margin ||
-            pos.y < minCam.y - margin || pos.y > maxCam.y + margin) {
-            Destroy(gameObject);
+            Vector3 pos = transform.position;
+            if (pos.x < minCam.x - margin || pos.x > maxCam.x + margin ||
+                pos.y < minCam.y - margin || pos.y > maxCam.y + margin) {
+                Destroy(gameObject);
+            }
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
         Debug.Log($"Bullet collided with: {collision.gameObject.name}");
+        
+        // Ignore the camera boundary - it's just for camera constraint, not bullet collision
+        if (collision.gameObject.name == "CameraBoundary") {
+            Debug.Log("Bullet ignored CameraBoundary collision");
+            return; // Don't destroy, just ignore
+        }
         
         // Check if we hit an enemy bullet - destroy ourselves but not the enemy bullet
         EnemyBullet enemyBullet = collision.gameObject.GetComponent<EnemyBullet>();
@@ -90,12 +113,18 @@ public class Bullet : MonoBehaviour {
             }
         }
 
-        // Destroy the bullet regardless of what it hit (except enemy bullets, handled above)
+        // Destroy the bullet regardless of what it hit (except enemy bullets and camera boundary, handled above)
         Destroy(gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
         Debug.Log($"Bullet triggered with: {other.gameObject.name}");
+        
+        // Ignore the camera boundary - it's just for camera constraint, not bullet collision
+        if (other.gameObject.name == "CameraBoundary") {
+            Debug.Log("Bullet ignored CameraBoundary trigger");
+            return; // Don't destroy, just ignore
+        }
         
         // Check if we hit an enemy bullet - destroy ourselves but not the enemy bullet
         EnemyBullet enemyBullet = other.GetComponent<EnemyBullet>();

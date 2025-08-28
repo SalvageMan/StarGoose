@@ -25,24 +25,59 @@ public class PlayerFlightController : MonoBehaviour {
     private Slider healthBarSlider;
     private Text healthText;
 
-    [Header("Camera Settings")]
-    public string virtualCameraName = "VirtualCameraOne";
+    [Header("Dash Settings")]
+    [Tooltip("Distance the player dashes")]
+    [Range(3f, 15f)]
+    public float dashDistance = 8f;
+
+    [Tooltip("Duration of the dash in seconds")]
+    [Range(0.1f, 0.5f)]
+    public float dashDuration = 0.2f;
+
+    [Tooltip("Time to recharge one dash charge (in seconds)")]
+    [Range(1f, 10f)]
+    public float dashRechargeTime = 5f;
+
+    [Tooltip("Maximum number of dash charges")]
+    [Range(1, 5)]
+    public int maxDashCharges = 2;
+
+    [Tooltip("Time window for double-tap detection (in seconds)")]
+    [Range(0.1f, 0.5f)]
+    public float doubleTapWindow = 0.3f;
+
+    // Dash system variables
+    private int currentDashCharges;
+    private float lastRechargeTime;
+    private bool isDashing = false;
+    private Vector2 dashDirection;
+    private float dashTimer;
+    private Vector2 dashStartPosition;
+    private Vector2 dashTargetPosition;
+
+    // Double-tap detection
+    private float lastHorizontalTapTime = -1f;
+    private float lastVerticalTapTime = -1f;
+    private KeyCode lastHorizontalKey = KeyCode.None;
+    private KeyCode lastVerticalKey = KeyCode.None;
+
+    // REMOVE: All camera-related fields
+    // private Camera mainCam;
+    // private GameObject virtualCameraObject;
 
     private Rigidbody2D rb;
     private Vector2 moveInput;
-    private Camera mainCam;
     private Vector2 velocity;
-    private GameObject virtualCameraObject;
 
     void Start() {
         rb = GetComponent<Rigidbody2D>();
         
-        // Position player within border markers FIRST
-        PositionPlayerInBorderCenter();
+        // Initialize dash system
+        currentDashCharges = maxDashCharges;
+        lastRechargeTime = Time.time;
         
-        // THEN setup camera references so it positions correctly
-        SetupCameraReferences();
-
+        // REMOVE ALL CAMERA SETUP - CinemachineManager handles this now
+        
         // Initialize health system
         healthSystem = new HealthSystem(maxHealth);
         healthSystem.OnHealthChanged += OnHealthChanged;
@@ -59,216 +94,6 @@ public class PlayerFlightController : MonoBehaviour {
         Debug.Log($"Player spawned with {healthSystem.CurrentHealth} health");
     }
 
-    void SetupCameraReferences()
-    {
-        // Get the main camera for UI and bounds calculations
-        mainCam = Camera.main;
-        if (mainCam == null)
-        {
-            mainCam = FindFirstObjectByType<Camera>();
-        }
-
-        // Find the virtual camera object
-        virtualCameraObject = GameObject.Find(virtualCameraName);
-        if (virtualCameraObject != null)
-        {
-            // Try the newer CinemachineCamera component first
-            var virtualCameraComponent = virtualCameraObject.GetComponent("CinemachineCamera");
-            
-            // If not found, try the older CinemachineVirtualCamera component
-            if (virtualCameraComponent == null)
-            {
-                virtualCameraComponent = virtualCameraObject.GetComponent("CinemachineVirtualCamera");
-            }
-            
-            if (virtualCameraComponent != null)
-            {
-                // Set Follow property using reflection
-                var followProperty = virtualCameraComponent.GetType().GetProperty("Follow");
-                if (followProperty != null)
-                {
-                    followProperty.SetValue(virtualCameraComponent, transform);
-                    Debug.Log($"Set Follow target to player for {virtualCameraComponent.GetType().Name}");
-                }
-
-                // Set LookAt property using reflection (if it exists)
-                var lookAtProperty = virtualCameraComponent.GetType().GetProperty("LookAt");
-                if (lookAtProperty != null)
-                {
-                    lookAtProperty.SetValue(virtualCameraComponent, transform);
-                    Debug.Log($"Set LookAt target to player for {virtualCameraComponent.GetType().Name}");
-                }
-
-                // Position the virtual camera over the player initially with proper Z distance
-                Vector3 cameraPosition = new Vector3(
-                    transform.position.x,
-                    transform.position.y,
-                    -10f // Proper camera distance for 2D games
-                );
-                virtualCameraObject.transform.position = cameraPosition;
-                Debug.Log($"Positioned {virtualCameraName} at: {cameraPosition}");
-
-                // Adjust camera size to fit border marker boundaries
-                SetCameraSizeToFitBounds(virtualCameraComponent);
-
-                // Try to set the priority to make sure this camera is active
-                var priorityProperty = virtualCameraComponent.GetType().GetProperty("Priority");
-                if (priorityProperty != null)
-                {
-                    priorityProperty.SetValue(virtualCameraComponent, 10); // High priority
-                    Debug.Log($"Set {virtualCameraName} priority to 10");
-                }
-
-                Debug.Log($"Successfully attached {virtualCameraName} to player using {virtualCameraComponent.GetType().Name}");
-            }
-            else
-            {
-                Debug.LogWarning($"Found {virtualCameraName} but it doesn't have a CinemachineCamera or CinemachineVirtualCamera component");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Could not find virtual camera named '{virtualCameraName}' in the hierarchy");
-        }
-    }
-
-    void SetCameraSizeToFitBounds(object virtualCameraComponent)
-    {
-        // Get border marker bounds
-        Bounds bounds = BorderMarkerUtils.GetBorderBounds();
-        
-        if (bounds.size == Vector3.one * 10f) // Default bounds means no markers found
-        {
-            Debug.LogWarning("No BorderMarkers found for camera sizing!");
-            return;
-        }
-
-        Debug.Log($"Border bounds for camera sizing: center={bounds.center}, size={bounds.size}");
-
-        // Get the camera's aspect ratio
-        float aspectRatio = (float)Screen.width / (float)Screen.height;
-        Debug.Log($"Screen aspect ratio: {aspectRatio}");
-
-        // Calculate orthographic size needed for both dimensions
-        float totalHeight = bounds.size.y;
-        float totalWidth = bounds.size.x;
-        
-        // Calculate size needed for vertical bounds
-        float sizeForHeight = totalHeight / 2f;
-        
-        // Calculate size needed for horizontal bounds (accounting for aspect ratio)
-        float sizeForWidth = totalWidth / (2f * aspectRatio);
-        
-        // Use the larger of the two to ensure both dimensions fit
-        float newOrthographicSize = Mathf.Max(sizeForHeight, sizeForWidth);
-        
-        // Remove padding - align exactly with border marker edges
-        // newOrthographicSize *= 1.1f; // 10% padding - REMOVED
-        
-        // Clamp to reasonable values
-        newOrthographicSize = Mathf.Clamp(newOrthographicSize, 5f, 25f);
-
-        Debug.Log($"Size for height: {sizeForHeight}, Size for width: {sizeForWidth}");
-        Debug.Log($"Final orthographic size: {newOrthographicSize} (from height: {totalHeight}, width: {totalWidth})");
-
-        // Try to access the Lens field directly using reflection
-        var componentType = virtualCameraComponent.GetType();
-        Debug.Log($"Virtual camera component type: {componentType.Name}");
-        
-        var lensField = componentType.GetField("Lens");
-        if (lensField != null)
-        {
-            Debug.Log("Found Lens field");
-            var lensValue = lensField.GetValue(virtualCameraComponent);
-            var lensType = lensValue.GetType();
-            Debug.Log($"Lens value type: {lensType.Name}");
-            
-            // Try to find the orthographic size field in LensSettings
-            var orthographicSizeField = lensType.GetField("OrthographicSize");
-            if (orthographicSizeField != null)
-            {
-                Debug.Log($"Found OrthographicSize field");
-                
-                // Get the current value first
-                var currentSize = orthographicSizeField.GetValue(lensValue);
-                Debug.Log($"Current orthographic size: {currentSize}");
-                
-                // Set the new value
-                orthographicSizeField.SetValue(lensValue, newOrthographicSize);
-                
-                // Set the modified lens back to the camera
-                lensField.SetValue(virtualCameraComponent, lensValue);
-                
-                Debug.Log($"Successfully set {virtualCameraName} orthographic size from {currentSize} to {newOrthographicSize}");
-            }
-            else
-            {
-                Debug.LogWarning($"Could not find OrthographicSize field in LensSettings. Available fields:");
-                foreach (var field in lensType.GetFields())
-                {
-                    Debug.Log($"  - {field.Name} ({field.FieldType.Name})");
-                }
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Could not find Lens field on {componentType.Name}");
-        }
-    }
-
-    void PositionVirtualCameraInBounds()
-    {
-        if (virtualCameraObject == null) return;
-
-        // Use BorderMarkerUtils to get the bounds (same as the original camera system)
-        Bounds bounds = BorderMarkerUtils.GetBorderBounds();
-        
-        if (bounds.size == Vector3.one * 10f) // Default bounds means no markers found
-        {
-            Debug.LogWarning("No BorderMarkers found for virtual camera positioning!");
-            return;
-        }
-
-        // Position the virtual camera at the center of the border marker area
-        Vector3 centerPosition = new Vector3(
-            bounds.center.x,
-            bounds.center.y,
-            virtualCameraObject.transform.position.z // Keep the original Z position
-        );
-        
-        virtualCameraObject.transform.position = centerPosition;
-        
-        Debug.Log($"Positioned {virtualCameraName} at center of border bounds: {centerPosition}");
-        
-        // Also try to set the camera's orthographic size to fit the bounds (if it's orthographic)
-        var virtualCameraComponent = virtualCameraObject.GetComponent("CinemachineVirtualCamera");
-        if (virtualCameraComponent != null)
-        {
-            // Try to get the lens settings and adjust orthographic size
-            var lensProperty = virtualCameraComponent.GetType().GetProperty("m_Lens");
-            if (lensProperty != null)
-            {
-                var lensValue = lensProperty.GetValue(virtualCameraComponent);
-                var orthographicSizeField = lensValue.GetType().GetField("OrthographicSize");
-                
-                if (orthographicSizeField != null)
-                {
-                    // Calculate the orthographic size to fit the vertical bounds
-                    float totalHeight = bounds.size.y;
-                    float newOrthographicSize = totalHeight / 2f;
-                    
-                    // Clamp to reasonable values
-                    newOrthographicSize = Mathf.Clamp(newOrthographicSize, 3f, 20f);
-                    
-                    orthographicSizeField.SetValue(lensValue, newOrthographicSize);
-                    lensProperty.SetValue(virtualCameraComponent, lensValue);
-                    
-                    Debug.Log($"Set {virtualCameraName} orthographic size to {newOrthographicSize} to fit bounds");
-                }
-            }
-        }
-    }
-
     void CreateHealthBar()
     {
         // Create a Canvas for the health bar
@@ -277,7 +102,7 @@ public class PlayerFlightController : MonoBehaviour {
 
         Canvas canvas = canvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
-        canvas.worldCamera = mainCam; // Use main camera for UI
+        // REMOVE: canvas.worldCamera = mainCam; // Don't reference mainCam
 
         CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
         scaler.scaleFactor = 0.001f;
@@ -388,27 +213,175 @@ public class PlayerFlightController : MonoBehaviour {
     }
 
     void Update() {
-        // Input handling
+        if (!isDashing)
+        {
+            // Input handling (only when not dashing)
+            HandleMovementInput();
+            HandleDashInput();
+        }
+        
+        // Update dash charges
+        UpdateDashCharges();
+        
+        // Handle dash movement
+        if (isDashing)
+        {
+            UpdateDash();
+        }
+
+        // REMOVE: Make health bar face the camera - let it be world-space
+        // The health bar will work fine without camera reference
+    }
+
+    void HandleMovementInput()
+    {
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");
         moveInput = moveInput.normalized;
+    }
 
-        // Make health bar face the camera
-        if (healthBarCanvas != null && mainCam != null)
+    void HandleDashInput()
+    {
+        // Check for double-tap on horizontal keys
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            healthBarCanvas.transform.LookAt(mainCam.transform);
-            healthBarCanvas.transform.Rotate(0, 180, 0);
+            CheckDoubleTap(KeyCode.A, -1f, true);
+        }
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            CheckDoubleTap(KeyCode.D, 1f, true);
+        }
+        
+        // Check for double-tap on vertical keys
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            CheckDoubleTap(KeyCode.W, 1f, false);
+        }
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            CheckDoubleTap(KeyCode.S, -1f, false);
+        }
+    }
+
+    void CheckDoubleTap(KeyCode key, float direction, bool isHorizontal)
+    {
+        float currentTime = Time.time;
+        
+        if (isHorizontal)
+        {
+            // Check if this is a double-tap
+            if (lastHorizontalKey == key && currentTime - lastHorizontalTapTime <= doubleTapWindow)
+            {
+                // Double-tap detected!
+                Vector2 dashDir = new Vector2(direction, 0f);
+                TryDash(dashDir);
+            }
+            
+            lastHorizontalTapTime = currentTime;
+            lastHorizontalKey = key;
+        }
+        else
+        {
+            // Check if this is a double-tap
+            if (lastVerticalKey == key && currentTime - lastVerticalTapTime <= doubleTapWindow)
+            {
+                // Double-tap detected!
+                Vector2 dashDir = new Vector2(0f, direction);
+                TryDash(dashDir);
+            }
+            
+            lastVerticalTapTime = currentTime;
+            lastVerticalKey = key;
+        }
+    }
+
+    void TryDash(Vector2 direction)
+    {
+        // Check if we have charges and aren't already dashing
+        if (currentDashCharges > 0 && !isDashing)
+        {
+            StartDash(direction);
+        }
+        else if (currentDashCharges <= 0)
+        {
+            Debug.Log("No dash charges remaining!");
+        }
+    }
+
+    void StartDash(Vector2 direction)
+    {
+        // Use a charge
+        currentDashCharges--;
+        
+        // Set dash state
+        isDashing = true;
+        dashDirection = direction.normalized;
+        dashTimer = 0f;
+        
+        // Calculate dash positions
+        dashStartPosition = rb.position;
+        dashTargetPosition = dashStartPosition + (dashDirection * dashDistance);
+        
+        // Clamp target position to bounds
+        if (boundsInitialized)
+        {
+            Bounds bounds = BorderMarkerUtils.GetBorderBounds();
+            if (bounds.size != Vector3.one * 10f)
+            {
+                dashTargetPosition.x = Mathf.Clamp(dashTargetPosition.x, bounds.min.x, bounds.max.x);
+                dashTargetPosition.y = Mathf.Clamp(dashTargetPosition.y, bounds.min.y, bounds.max.y);
+            }
+        }
+        
+        Debug.Log($"Dash started! Direction: {dashDirection}, Charges remaining: {currentDashCharges}");
+    }
+
+    void UpdateDash()
+    {
+        dashTimer += Time.deltaTime;
+        float progress = dashTimer / dashDuration;
+        
+        if (progress >= 1f)
+        {
+            // Dash complete
+            progress = 1f;
+            isDashing = false;
+            rb.MovePosition(dashTargetPosition);
+            Debug.Log("Dash completed!");
+        }
+        else
+        {
+            // Interpolate position during dash
+            Vector2 currentPos = Vector2.Lerp(dashStartPosition, dashTargetPosition, progress);
+            rb.MovePosition(currentPos);
+        }
+    }
+
+    void UpdateDashCharges()
+    {
+        // Recharge dash if we're not at max charges
+        if (currentDashCharges < maxDashCharges)
+        {
+            if (Time.time >= lastRechargeTime + dashRechargeTime)
+            {
+                currentDashCharges++;
+                lastRechargeTime = Time.time;
+                Debug.Log($"Dash recharged! Charges: {currentDashCharges}/{maxDashCharges}");
+            }
         }
     }
 
     void FixedUpdate() {
-        if (moveInput.magnitude > 0) {
-            velocity = Vector2.MoveTowards(velocity, moveInput * moveSpeed, acceleration * Time.fixedDeltaTime);
-        } else {
-            velocity = Vector2.MoveTowards(velocity, Vector2.zero, deceleration * Time.fixedDeltaTime);
-        }
+        if (!isDashing) // Only apply normal movement when not dashing
+        {
+            if (moveInput.magnitude > 0) {
+                velocity = Vector2.MoveTowards(velocity, moveInput * moveSpeed, acceleration * Time.fixedDeltaTime);
+            } else {
+                velocity = Vector2.MoveTowards(velocity, Vector2.zero, deceleration * Time.fixedDeltaTime);
+            }
 
-        rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+        }
 
         if (boundsInitialized) {
             ClampToBounds();
@@ -416,20 +389,21 @@ public class PlayerFlightController : MonoBehaviour {
     }
 
     void ClampToBounds() {
+        if (!boundsInitialized) return;
+        
         Vector3 pos = transform.position;
 
-        if (useCameraBounds) {
-            Vector3 minCam = mainCam.ViewportToWorldPoint(Vector3.zero);
-            Vector3 maxCam = mainCam.ViewportToWorldPoint(Vector3.one);
-
-            pos.x = Mathf.Clamp(pos.x, minCam.x + screenPadding.x, maxCam.x - screenPadding.x);
-            pos.y = Mathf.Clamp(pos.y, minCam.y + screenPadding.y, maxCam.y - screenPadding.y);
-        } else {
-            pos.x = Mathf.Clamp(pos.x, minBounds.x + screenPadding.x, maxBounds.x - screenPadding.x);
-            pos.y = Mathf.Clamp(pos.y, minBounds.y + screenPadding.y, maxBounds.y - screenPadding.y);
+        // Get border bounds for movement constraints
+        Bounds bounds = BorderMarkerUtils.GetBorderBounds();
+        
+        if (bounds.size != Vector3.one * 10f) // Check if we found real markers
+        {
+            // Player can move right up to the boundary (no padding)
+            pos.x = Mathf.Clamp(pos.x, bounds.min.x, bounds.max.x);
+            pos.y = Mathf.Clamp(pos.y, bounds.min.y, bounds.max.y);
+            
+            transform.position = pos;
         }
-
-        transform.position = pos;
     }
 
     private void CalculateBounds() {
@@ -479,10 +453,62 @@ public class PlayerFlightController : MonoBehaviour {
         }
     }
 
-    // Public method to change virtual camera at runtime if needed
-    public void SetVirtualCamera(string cameraName)
+    public bool IsDead()
     {
-        virtualCameraName = cameraName;
-        SetupCameraReferences();
+        return healthSystem != null && healthSystem.IsDead;
+    }
+
+    public float GetCurrentHealth()
+    {
+        return healthSystem != null ? healthSystem.CurrentHealth : 0f;
+    }
+
+    public float GetMaxHealth()
+    {
+        return healthSystem != null ? healthSystem.MaxHealth : 0f;
+    }
+
+    public float GetHealthPercentage()
+    {
+        return healthSystem != null ? healthSystem.HealthPercentage : 0f;
+    }
+
+    // Add these public methods to check dash status (useful for UI)
+    public int GetCurrentDashCharges()
+    {
+        return currentDashCharges;
+    }
+
+    public int GetMaxDashCharges()
+    {
+        return maxDashCharges;
+    }
+
+    public float GetDashRechargeProgress()
+    {
+        if (currentDashCharges >= maxDashCharges) return 1f;
+        
+        float timeSinceLastRecharge = Time.time - lastRechargeTime;
+        return Mathf.Clamp01(timeSinceLastRecharge / dashRechargeTime);
+    }
+
+    public bool IsDashing()
+    {
+        return isDashing;
+    }
+}
+
+public class CameraFollower : MonoBehaviour
+{
+    public Transform target;
+    public float followSpeed = 5f;
+    
+    void LateUpdate()
+    {
+        if (target != null)
+        {
+            Vector3 targetPosition = new Vector3(target.position.x, target.position.y, transform.position.z);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
+        }
     }
 }
